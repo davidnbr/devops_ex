@@ -9,6 +9,7 @@ Secrets are managed with Secrets Manager in AWS.
 
 - `environments/production`: ECS Fargate service behind API Gateway and an Application Load Balancer.
 - `environments/staging`: ECS Fargate service behind API Gateway and an Application Load Balancer.
+- `environments/development`: ECS Fargate service behind API Gateway and an Application Load Balancer.
 - `modules/ecr`: reusable ECR repository.
 - `modules/network`: reusable VPC, public subnet and internet gateway.
 - `modules/ecs-service`: reusable ECS/Fargate service, API Gateway, ALB and autoscaling.

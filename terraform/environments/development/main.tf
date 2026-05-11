@@ -3,7 +3,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  environment = "staging"
+  environment = "development"
   name        = "${var.project_name}-${local.environment}"
 
   tags = {
@@ -19,10 +19,10 @@ module "network" {
   name               = local.name
   availability_zones = slice(data.aws_availability_zones.available.names, 0, 2)
   public_subnet_cidrs = [
-    "10.10.1.0/24",
-    "10.10.2.0/24"
+    "10.30.1.0/24",
+    "10.30.2.0/24"
   ]
-  vpc_cidr = "10.10.0.0/16"
+  vpc_cidr = "10.30.0.0/16"
   tags     = local.tags
 }
 
@@ -58,7 +58,7 @@ module "app" {
   vpc_id          = module.network.vpc_id
   subnet_ids      = module.network.public_subnet_ids
   container_image = "${module.ecr.repository_url}:${var.image_tag}"
-  desired_count   = 2
+  desired_count   = 1
   jwt_secret_arn  = aws_secretsmanager_secret.jwt_secret.arn
   api_key_arn     = aws_secretsmanager_secret.api_key.arn
   tags            = local.tags

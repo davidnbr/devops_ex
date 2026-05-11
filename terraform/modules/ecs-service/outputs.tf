@@ -8,6 +8,11 @@ output "service_name" {
   value       = aws_ecs_service.this.name
 }
 
+output "task_definition_arn" {
+  description = "ECS task definition ARN deployed by the service."
+  value       = aws_ecs_task_definition.this.arn
+}
+
 output "load_balancer_dns_name" {
   description = "Application Load Balancer DNS name."
   value       = aws_lb.this.dns_name

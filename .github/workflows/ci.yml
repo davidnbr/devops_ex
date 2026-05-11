@@ -8,8 +8,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERCEL_DEPLOY: "true"
+  AWS_REGION: us-east-1
   IMAGE_VERSION: ${{ github.sha }}
+  PROJECT_NAME: devops-ex
 
 jobs:
   build:
@@ -74,6 +75,7 @@ jobs:
     strategy:
       matrix:
         environment:
+          - development
           - staging
           - production
 
@@ -95,8 +97,8 @@ jobs:
         working-directory: terraform/environments/${{ matrix.environment }}
         run: terraform validate
 
-  deploy-vercel:
-    name: Deploy to Vercel
+  deploy:
+    name: Deployment
     runs-on: ubuntu-latest
     needs:
       - build
@@ -104,17 +106,76 @@ jobs:
       - terraform-validate
     if: >-
       ${{
-        github.ref == 'refs/heads/master' &&
-        env.VERCEL_DEPLOY == 'true'
+        ( github.ref == 'refs/heads/production' ||
+          github.ref == 'refs/heads/master' ||
+          github.ref == 'refs/heads/staging' ||
+          github.ref == 'refs/heads/dev' ||
+          github.ref == 'refs/heads/development' ) &&
+        false
       }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Deploy production to Vercel
+      - name: Resolve deployment target
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            master|production)
+              echo "TF_ENV=production" >> "$GITHUB_ENV"
+              ;;
+            staging)
+              echo "TF_ENV=staging" >> "$GITHUB_ENV"
+              ;;
+            dev|development)
+              echo "TF_ENV=development" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "Unsupported deployment branch: ${GITHUB_REF_NAME}" >&2
+              exit 1
+              ;;
+          esac
+          echo "IMAGE_TAG=${IMAGE_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set Up Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve image URI
+        run: |
+          AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          ECR_REPOSITORY="${PROJECT_NAME}-${TF_ENV}"
+          ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          echo "IMAGE_URI=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" >> "$GITHUB_ENV"
+
+      - name: Docker build
+        run: docker build -t "$IMAGE_URI" .
+
+      - name: Docker push
+        run: docker push "$IMAGE_URI"
+
+      - name: Terraform init
+        run: terraform -chdir=terraform/environments/$TF_ENV init
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
+
+      - name: Terraform plan
+        run: terraform -chdir=terraform/environments/$TF_ENV plan -var "image_tag=${IMAGE_TAG}" -out=tfplan
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_api_key: ${{ secrets.API_KEY }}
+
+      - name: Terraform apply
+        run: terraform -chdir=terraform/environments/$TF_ENV apply -auto-approve tfplan
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}

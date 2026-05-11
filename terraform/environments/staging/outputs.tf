@@ -13,6 +13,11 @@ output "ecs_service_name" {
   value       = module.app.service_name
 }
 
+output "ecs_task_definition_arn" {
+  description = "ECS task definition ARN."
+  value       = module.app.task_definition_arn
+}
+
 output "load_balancer_dns_name" {
   description = "Staging ALB DNS name."
   value       = module.app.load_balancer_dns_name
