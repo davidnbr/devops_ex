@@ -35,6 +35,6 @@ async def respond(body: Body, x_api_key: str = Header()):
 
     token = create_jwt(data, data["timeToLiveSec"])
     return {
-        "message": f"Hello {data["from"]} your message will be sent",
+        "message": f"Hello {body.sender} your message will be sent",
         "token": token,
     }
