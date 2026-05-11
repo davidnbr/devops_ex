@@ -11,7 +11,7 @@ env:
   AWS_REGION: us-east-1
   IMAGE_VERSION: ${{ github.sha }}
   PROJECT_NAME: devops-ex
-  VERCEL_DEPLOY: "false"
+  VERCEL_DEPLOY: "true"
 
 jobs:
   build:
