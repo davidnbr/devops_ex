@@ -1,0 +1,15 @@
+.git
+.omc
+.devenv
+.direnv
+.terraform
+terraform
+Dockerfile
+devenv.lock
+devenv.nix
+devenv.yaml
+*.tfstate
+*.tfstate.*
+*.tfvars
+__pycache__
+*.pyc
