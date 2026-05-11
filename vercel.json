@@ -3,8 +3,7 @@
   "devCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8000",
   "functions": {
     "app/main.py": {
-      "memory": 128,
-      "maxDuration": 10
+      "excludeFiles": "{terraform/**,.omc/**,.devenv/**,.direnv/**,Dockerfile,devenv.*,*.tfstate,*.tfstate.*,*.tfvars}"
     }
   },
   "rewrites": [

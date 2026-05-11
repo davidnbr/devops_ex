@@ -6,5 +6,8 @@ requires-python = ">=3.13"
 [project.scripts]
 app = "app.main:app"
 
+[tool.vercel]
+entrypoint = "app.main:app"
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
