@@ -1,0 +1,7 @@
+[project]
+name = "devops-ex"
+version = "0.1.0"
+requires-python = ">=3.13"
+
+[project.scripts]
+app = "app.main:app"
