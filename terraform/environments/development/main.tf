@@ -39,7 +39,7 @@ resource "aws_secretsmanager_secret" "jwt_secret" {
 
 resource "aws_secretsmanager_secret_version" "jwt_secret" {
   secret_id     = aws_secretsmanager_secret.jwt_secret.id
-  secret_string = var.jwt_secret
+  secret_string = sensitive(var.jwt_secret)
 }
 
 resource "aws_secretsmanager_secret" "api_key" {
@@ -48,7 +48,7 @@ resource "aws_secretsmanager_secret" "api_key" {
 
 resource "aws_secretsmanager_secret_version" "api_key" {
   secret_id     = aws_secretsmanager_secret.api_key.id
-  secret_string = var.api_key
+  secret_string = sensitive(var.api_key)
 }
 
 module "app" {
