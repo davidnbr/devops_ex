@@ -17,3 +17,8 @@ output "load_balancer_dns_name" {
   description = "Staging ALB DNS name."
   value       = module.app.load_balancer_dns_name
 }
+
+output "api_gateway_endpoint" {
+  description = "Staging API Gateway endpoint."
+  value       = module.app.api_gateway_endpoint
+}

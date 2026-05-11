@@ -146,6 +146,41 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+resource "aws_apigatewayv2_api" "this" {
+  name          = var.name
+  protocol_type = "HTTP"
+
+  tags = var.tags
+}
+
+resource "aws_apigatewayv2_integration" "alb" {
+  api_id                 = aws_apigatewayv2_api.this.id
+  integration_type       = "HTTP_PROXY"
+  integration_method     = "ANY"
+  integration_uri        = "http://${aws_lb.this.dns_name}/{proxy}"
+  payload_format_version = "1.0"
+}
+
+resource "aws_apigatewayv2_route" "proxy" {
+  api_id    = aws_apigatewayv2_api.this.id
+  route_key = "ANY /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
+}
+
+resource "aws_apigatewayv2_route" "root" {
+  api_id    = aws_apigatewayv2_api.this.id
+  route_key = "ANY /"
+  target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
+}
+
+resource "aws_apigatewayv2_stage" "this" {
+  api_id      = aws_apigatewayv2_api.this.id
+  name        = "$default"
+  auto_deploy = true
+
+  tags = var.tags
+}
+
 resource "aws_ecs_task_definition" "this" {
   family                   = var.name
   network_mode             = "awsvpc"

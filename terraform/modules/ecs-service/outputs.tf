@@ -12,3 +12,8 @@ output "load_balancer_dns_name" {
   description = "Application Load Balancer DNS name."
   value       = aws_lb.this.dns_name
 }
+
+output "api_gateway_endpoint" {
+  description = "API Gateway HTTP API endpoint."
+  value       = aws_apigatewayv2_api.this.api_endpoint
+}
