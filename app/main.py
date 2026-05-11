@@ -31,10 +31,10 @@ def create_jwt(data: dict, seconds: int = 300) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm=ALGORITHM)
 
 
-@app.post("/DevOps")
-async def respond(body: Body, x_api_key: str = Header()) -> dict:
-    if not secrets.compare_digest(x_api_key, API_KEY):
-        raise HTTPException(status_code=403, detail="forbidden")
+@app.post("/DevOps/")
+async def respond(body: Body, x_parse_rest_api_key: str = Header()) -> dict:
+    if not secrets.compare_digest(x_parse_rest_api_key, API_KEY):
+        raise HTTPException(status_code=403, detail="ERROR")
 
     token = create_jwt(body.model_dump(by_alias=True), body.timeToLiveSec)
     return {
