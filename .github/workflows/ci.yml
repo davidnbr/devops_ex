@@ -2,25 +2,14 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
-      - staging
-      - development
-  pull_request:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version or image tag to validate"
-        required: false
-        default: "manual"
-      vercel_deploy:
-        description: "Deploy to Vercel when true"
-        required: false
-        default: "false"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  VERCEL_DEPLOY: ${{ vars.VERCEL_DEPLOY || 'false' }}
-  IMAGE_VERSION: ${{ github.event.inputs.version || github.sha }}
+  VERCEL_DEPLOY: "true"
+  IMAGE_VERSION: ${{ github.sha }}
 
 jobs:
   build:
@@ -116,7 +105,7 @@ jobs:
     if: >-
       ${{
         github.ref == 'refs/heads/master' &&
-        (env.VERCEL_DEPLOY == 'true' || github.event.inputs.vercel_deploy == 'true')
+        env.VERCEL_DEPLOY == 'true'
       }}
 
     steps:
