@@ -3,7 +3,7 @@ import os
 import secrets
 
 from fastapi import FastAPI, Header, HTTPException
-from jose import jwt
+from jose import JWTError, jwt
 from pydantic import BaseModel, Field
 
 JWT_SECRET: str = os.environ["JWT_SECRET"]
@@ -32,8 +32,17 @@ def create_jwt(data: dict, seconds: int = 300) -> str:
 
 
 @app.post("/DevOps/")
-async def respond(body: Body, x_parse_rest_api_key: str = Header()) -> dict:
+async def respond(
+    body: Body,
+    x_parse_rest_api_key: str = Header(),
+    x_jwt_kwy: str = Header(),
+) -> dict:
     if not secrets.compare_digest(x_parse_rest_api_key, API_KEY):
+        raise HTTPException(status_code=403, detail="ERROR")
+
+    try:
+        jwt.decode(x_jwt_kwy, JWT_SECRET, algorithms=[ALGORITHM])
+    except JWTError:
         raise HTTPException(status_code=403, detail="ERROR")
 
     token = create_jwt(body.model_dump(by_alias=True), body.timeToLiveSec)
