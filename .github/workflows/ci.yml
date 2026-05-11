@@ -8,7 +8,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERCEL_DEPLOY: "true"
   IMAGE_VERSION: ${{ github.sha }}
 
 jobs:
@@ -95,8 +94,8 @@ jobs:
         working-directory: terraform/environments/${{ matrix.environment }}
         run: terraform validate
 
-  deploy-vercel:
-    name: Deploy to Vercel
+  deploy:
+    name: Deployment
     runs-on: ubuntu-latest
     needs:
       - build
@@ -104,7 +103,9 @@ jobs:
       - terraform-validate
     if: >-
       ${{
-        github.ref == 'refs/heads/master' &&
+        ( github.ref == 'refs/heads/production' ||
+          github.ref == 'refs/heads/master' ||
+          github.ref == 'refs/heads/development' ) &&
         env.VERCEL_DEPLOY == 'true'
       }}
 
@@ -112,9 +113,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Deploy production to Vercel
+      - name: Set Up Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Terraform init and plan
+        run: |
+          terraform -chdir=terraform/environments/${{ github.ref_name }} init && \
+          terraform -chdir=terraform/environments/${{ github.ref_name }} plan \
+            -var "image_tag=${{ inputs.IMAGE_TAG }}" \
+            -out=tfplan
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
+
+      - name: Deploy revision
+        run: |
+          terraform -chdir=environments/${{ inputs.environment }} apply -auto-approve tfplan
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
