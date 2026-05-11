@@ -11,7 +11,6 @@ env:
   AWS_REGION: us-east-1
   IMAGE_VERSION: ${{ github.sha }}
   PROJECT_NAME: devops-ex
-  VERCEL_DEPLOY: true
 
 jobs:
   build:
@@ -112,7 +111,7 @@ jobs:
           github.ref == 'refs/heads/staging' ||
           github.ref == 'refs/heads/dev' ||
           github.ref == 'refs/heads/development' ) &&
-        env.VERCEL_DEPLOY == 'false'
+        false
       }}
 
     steps:
