@@ -19,11 +19,11 @@ output "ecs_task_definition_arn" {
 }
 
 output "load_balancer_dns_name" {
-  description = "Production ALB DNS name."
+  description = "Development ALB DNS name."
   value       = module.app.load_balancer_dns_name
 }
 
 output "api_gateway_endpoint" {
-  description = "Production API Gateway endpoint."
+  description = "Development API Gateway endpoint."
   value       = module.app.api_gateway_endpoint
 }

@@ -1,0 +1,5 @@
+aws_region = "us-east-1"
+image_tag  = "development"
+
+jwt_secret = "replace-with-development-jwt-secret"
+api_key    = "replace-with-development-api-key"
