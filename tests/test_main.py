@@ -1,7 +1,12 @@
+import os
+
 from fastapi.testclient import TestClient
 from jose import jwt
 
-from app.main import ALGORITHM, JWT_SECRET, app, create_jwt
+os.environ["JWT_SECRET"] = "test-secret"
+os.environ["API_KEY"] = "test-api-key"
+
+from app.main import ALGORITHM, JWT_SECRET, app, create_jwt  # noqa: E402
 
 client = TestClient(app)
 
